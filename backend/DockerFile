@@ -10,4 +10,7 @@ COPY . .
 
 EXPOSE 5000
 
+CMD ["npm", "start"]FROM node:20-alpine
+EXPOSE 5000
+
 CMD ["npm", "start"]
