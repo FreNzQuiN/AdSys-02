@@ -16,6 +16,8 @@ services:
       - "5000:5000"
     env_file:
       - .env
+    environment:
+      MINIO_BUCKET: ${MINIO_BUCKET}
     depends_on:
       db:
         condition: service_healthy
@@ -55,7 +57,7 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET=${MINIO_BUCKET}
+      MINIO_BUCKET: ${MINIO_BUCKET}
     ports:
       - "9000:9000"
       - "9001:9001"
