@@ -1,234 +1,81 @@
-# A. Pemilihan Tech-Stack
+# SIAKAD Containerized Application
 
-## 1. Bahasa Pemrograman dan Framework
+Aplikasi Sistem Informasi Akademik (SIAKAD) berbasis container. Repositori ini memuat konfigurasi utama infrastruktur yang menggabungkan berbagai layanan (frontend, backend, database, dan object storage) ke dalam satu ekosistem Docker.
 
-Untuk aplikasi CRUD, kami menggunakan:
+## Arsitektur dan Layanan terintegrasi
 
-| Komponen | Teknologi            |
-| -------- | -------------------- |
-| Frontend | React                |
-| Backend  | Node.js + Express.js |
+Sistem ini berjalan di atas Docker Compose dan terdiri dari 6 layanan utama:
 
----
+- **Frontend**: Aplikasi antarmuka pengguna berbasis React.
+- **Backend**: REST API melayani request dari antarmuka berbasis Node.js dan Express.
+- **Database (db)**: Penyimpanan data relasional menggunakan MySQL 8.0.
+- **MinIO**: Penyimpanan objek (Object Storage) untuk file dokumen mahasiswa.
+- **phpMyAdmin**: Antarmuka grafis (GUI) untuk manajemen database MySQL.
+- **Nginx**: Bertindak sebagai Web Server dan Reverse Proxy untuk merutekan trafik ke Frontend dan Backend dalam satu port yang sama.
 
-## 2. Base Image Docker
+## Infrastruktur Jaringan dan Penyimpanan
 
-Base image yang digunakan pada Dockerfile:
+- **Network**: Seluruh container berjalan dalam satu jaringan terisolasi bernama `siakad-network` dengan menggunakan driver `bridge`. Komunikasi antar-container menggunakan nama service (misal: backend memanggil `http://db:3306`).
+- **Volume**: Data disimpan secara permanen menggunakan Docker volumes (`mysql_data` dan `minio_data`) agar data tidak hilang ketika container dihentikan atau dihapus.
 
-### Backend
+## Prasyarat Sistem
 
-```dockerfile
-FROM node:20-alpine
-```
+- Docker Engine
+- Docker Compose plugin
 
-### Frontend
+## Cara Menjalankan Aplikasi
 
-```dockerfile
-FROM node:20-alpine AS builder
-```
+1. **Konfigurasi Environment**
+   Gunakan file `.env.example` sebagai acuan untuk membuat file konfigurasi environment.
+   ```bash
+   cp .env.example .env
+   ```
 
-Dan untuk serving static frontend:
+````
 
-```dockerfile
-FROM nginx:alpine
-```
+*Catatan: Pastikan Anda telah menetapkan kredensial untuk MySQL dan MinIO di dalam file `.env`.*
 
----
+2. **Jalankan Container**
+Eksekusi perintah berikut di root direktori (lokasi file `docker-compose.yml`) untuk membangun dan menjalankan semua container di latar belakang:
+```bash
+docker compose up -d --build
 
-## 3. Database yang Digunakan
+````
 
-Kami menggunakan:
+3. **Catatan Startup**
+   Untuk mencegah masalah koneksi saat pertama kali dijalankan, sistem menggunakan `depends_on` dan `healthcheck`. Layanan Backend akan otomatis menunggu hingga container Database (`db`) benar-benar berstatus _healthy_ dan siap menerima koneksi.
 
-```text
-MySQL 8.0
-```
+## Daftar Akses Layanan
 
----
+Setelah seluruh container berhasil berjalan, Anda dapat mengakses layanan melalui URL dan Port berikut pada mesin host:
 
-## 4. Alasan Memilih MySQL 8.0
+| Layanan             | URL Akses               | Keterangan                                                        |
+| ------------------- | ----------------------- | ----------------------------------------------------------------- |
+| **Aplikasi SIAKAD** | `http://localhost`      | Merutekan trafik ke antarmuka Frontend (Nginx, Port 80)           |
+| **Backend API**     | `http://localhost/api/` | Merutekan trafik ke Backend (Nginx, Port 80 ke 5000)              |
+| **phpMyAdmin**      | `http://localhost:8080` | Port 8080 (Login menggunakan kredensial MySQL di `.env`)          |
+| **MinIO Console**   | `http://localhost:9001` | Dashboard UI MinIO (Login menggunakan kredensial MinIO di `.env`) |
+| **MinIO API**       | `http://localhost:9000` | Endpoint utama untuk keperluan _Object Storage_                   |
 
-Alasan penggunaan MySQL 8.0:
+## Manajemen Container Dasar
 
-- stabil untuk aplikasi CRUD
-- kompatibel dengan phpMyAdmin
-- dokumentasi luas
-- mendukung modern authentication
-- ringan dan mudah dijalankan pada Docker
-
----
-
-## 5. Penggunaan MinIO
-
-Kami sudah menggunakan:
-
-```text
-MinIO Object Storage
-```
-
-untuk penyimpanan file upload mahasiswa.
-
----
-
-## 6. Nama Bucket MinIO
-
-Bucket yang digunakan:
-
-```text
-siakad-documents
-```
-
-Bucket ini digunakan untuk menyimpan:
-
-- foto profil mahasiswa
-- scan ijazah
-- dokumen akademik lainnya
-
----
-
-# B. Desain Arsitektur Jaringan
-
-## 1. Nama Docker Network
-
-Docker network yang digunakan:
-
-```text
-siakad-network
-```
-
-Network ini menggunakan driver:
-
-```text
-bridge
-```
-
----
-
-## 2. Komunikasi Antar Service
-
-Semua container berada dalam satu network Docker sehingga dapat saling berkomunikasi menggunakan service name Docker.
-
----
-
-## 3. Koneksi Backend ke Database
-
-Backend tidak menggunakan:
-
-```text
-localhost
-```
-
-melainkan menggunakan service name Docker:
-
-```text
-db
-```
-
-Contoh koneksi:
-
-```text
-mysql://db:3306
-```
-
----
-
-## 4. Koneksi Backend ke MinIO
-
-Backend mengakses MinIO menggunakan service name:
-
-```text
-minio
-```
-
-Contoh endpoint:
-
-```text
-http://minio:9000
-```
-
----
-
-## 5. Port Host yang Dibuka
-
-| Layanan                  | Port Host |
-| ------------------------ | --------- |
-| Dashboard Utama Aplikasi | 80        |
-| phpMyAdmin               | 8080      |
-| MinIO Console            | 9001      |
-| MinIO API                | 9000      |
-
----
-
-# C. Kendala Teknis
-
-## 1. Kendala Terbesar
-
-Kendala terbesar adalah komunikasi antar-container saat startup awal.
-
-Masalah yang muncul:
-
-```text
-ECONNREFUSED db:3306
-```
-
-Penyebab:
-
-- backend berjalan lebih cepat dibanding MySQL
-- database belum siap menerima koneksi
-
----
-
-## 2. Solusi yang Digunakan
-
-Solusi yang kami gunakan:
-
-- menggunakan `depends_on`
-- menambahkan `healthcheck` pada MySQL
-- menggunakan retry connection pada backend
-
----
-
-## 3. Layanan yang Pernah Error
-
-Beberapa layanan sempat mengalami error saat menjalankan:
+- **Melihat log semua layanan:**
 
 ```bash
-docker compose up
+docker compose logs -f
+
 ```
 
----
+- **Menghentikan aplikasi:**
 
-### Backend
+```bash
+docker compose down
 
-Masalah:
+```
 
-- gagal connect ke MySQL
-- gagal connect ke MinIO saat startup awal
+- **Menghapus aplikasi beserta seluruh data (Database & File MinIO):**
 
-Penyebab:
+```bash
+docker compose down -v
 
-- service dependency belum ready
-
----
-
-### Nginx
-
-Masalah:
-
-- bad gateway
-
-Penyebab:
-
-- backend belum aktif saat nginx melakukan proxy request
-
----
-
-## 4. Status Saat Ini
-
-Saat ini seluruh container sudah dapat berjalan dengan baik:
-
-- frontend
-- backend
-- mysql
-- minio
-- phpMyAdmin
-- nginx
+```
