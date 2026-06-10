@@ -31,51 +31,72 @@ Sistem ini berjalan di atas Docker Compose dan terdiri dari 6 layanan utama:
    cp .env.example .env
    ```
 
-````
-
-*Catatan: Pastikan Anda telah menetapkan kredensial untuk MySQL dan MinIO di dalam file `.env`.*
+   *Catatan: Pastikan Anda telah menetapkan kredensial untuk MySQL dan MinIO di dalam file `.env`.*
 
 2. **Jalankan Container**
-Eksekusi perintah berikut di root direktori (lokasi file `docker-compose.yml`) untuk membangun dan menjalankan semua container di latar belakang:
-```bash
-docker compose up -d --build
-
-````
+   Eksekusi perintah berikut di root direktori (lokasi file `docker-compose.yml`) untuk membangun dan menjalankan semua container di latar belakang:
+   ```bash
+   docker compose up -d --build
+   ```
 
 3. **Catatan Startup**
+
    Untuk mencegah masalah koneksi saat pertama kali dijalankan, sistem menggunakan `depends_on` dan `healthcheck`. Layanan Backend akan otomatis menunggu hingga container Database (`db`) benar-benar berstatus _healthy_ dan siap menerima koneksi.
 
 ## Daftar Akses Layanan
-
-Setelah seluruh container berhasil berjalan, Anda dapat mengakses layanan melalui URL dan Port berikut pada mesin host:
-
-| Layanan             | URL Akses               | Keterangan                                                        |
-| ------------------- | ----------------------- | ----------------------------------------------------------------- |
-| **Aplikasi SIAKAD** | `http://localhost`      | Merutekan trafik ke antarmuka Frontend (Nginx, Port 80)           |
-| **Backend API**     | `http://localhost/api/` | Merutekan trafik ke Backend (Nginx, Port 80 ke 5000)              |
-| **phpMyAdmin**      | `http://localhost:8080` | Port 8080 (Login menggunakan kredensial MySQL di `.env`)          |
-| **MinIO Console**   | `http://localhost:9001` | Dashboard UI MinIO (Login menggunakan kredensial MinIO di `.env`) |
-| **MinIO API**       | `http://localhost:9000` | Endpoint utama untuk keperluan _Object Storage_                   |
+   
+   Setelah seluruh container berhasil berjalan, Anda dapat mengakses layanan melalui URL dan Port berikut pada mesin host:
+   
+   | Layanan             | URL Akses               | Keterangan                                                        |
+   | ------------------- | ----------------------- | ----------------------------------------------------------------- |
+   | **Aplikasi SIAKAD** | `http://localhost`      | Merutekan trafik ke antarmuka Frontend (Nginx, Port 80)           |
+   | **Backend API**     | `http://localhost/api/` | Merutekan trafik ke Backend (Nginx, Port 80 ke 5000)              |
+   | **phpMyAdmin**      | `http://localhost:8080` | Port 8080 (Login menggunakan kredensial MySQL di `.env`)          |
+   | **MinIO Console**   | `http://localhost:9001` | Dashboard UI MinIO (Login menggunakan kredensial MinIO di `.env`) |
+   | **MinIO API**       | `http://localhost:9000` | Endpoint utama untuk keperluan _Object Storage_                   |
 
 ## Manajemen Container Dasar
 
-- **Melihat log semua layanan:**
+   - **Melihat log semua layanan:**
+   
+   ```bash
+   docker compose logs -f
+   
+   ```
 
-```bash
-docker compose logs -f
+   - **Menghentikan aplikasi:**
+   
+   ```bash
+   docker compose down
+   
+   ```
 
-```
+   - **Menghapus aplikasi beserta seluruh data (Database & File MinIO):**
+   
+   ```bash
+   docker compose down -v
+   
+   ```
 
-- **Menghentikan aplikasi:**
+## Lampiran
 
-```bash
-docker compose down
+**1. Hasil docker compose build, dieksekusi di root directory.**
 
-```
+![Hasil docker compose build, dieksekusi di root directory.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/dockercompose-result.png)
 
-- **Menghapus aplikasi beserta seluruh data (Database & File MinIO):**
+**2. Melihat docker containers melalui terminal dan docker desktop.**
 
-```bash
-docker compose down -v
+![List docker containers melalui terminal.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/docker-ps.png)
 
-```
+![List docker containers melalui docker desktop.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/docker-desktop.png)
+
+**3. Layanan docker terhubung dengan host.**
+
+   **a. Front End SIAKAD diakses melalui local.**
+   ![Layanan frontend melalui browser host.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/frontend.png)
+   
+   **b. MinIo diakses melalui local.**
+   ![.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/miniio.png)
+   
+   **c. phpMyAdmin diakses melalui local.**
+   ![.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/phpmyadmin.png)
