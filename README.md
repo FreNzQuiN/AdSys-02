@@ -78,6 +78,12 @@ Sistem ini berjalan di atas Docker Compose dan terdiri dari 6 layanan utama:
    
    ```
 
+## **TECHNICAL DETAIL**
+
+   **A. [FrontEnd: https://github.com/FreNzQuiN/AdSys-02/tree/main/frontend](https://github.com/FreNzQuiN/AdSys-02/tree/main/frontend)**
+
+   **B. [BackEnd: https://github.com/FreNzQuiN/AdSys-02/tree/main/backend](https://github.com/FreNzQuiN/AdSys-02/tree/main/backend)**
+
 ## Lampiran
 
 **1. Hasil docker compose build, dieksekusi di root directory.**
@@ -92,7 +98,7 @@ Sistem ini berjalan di atas Docker Compose dan terdiri dari 6 layanan utama:
 
 **3. Layanan docker terhubung dengan host.**
 
-   **a. Front End SIAKAD diakses melalui local.**
+   **a. FrontEnd SIAKAD diakses melalui local.**
    ![Layanan frontend melalui browser host.](https://raw.githubusercontent.com/FreNzQuiN/AdSys-02/refs/heads/main/img/frontend.png)
    
    **b. MinIo diakses melalui local.**
